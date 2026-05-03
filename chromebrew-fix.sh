@@ -99,7 +99,8 @@ if [[ -d "$CREW_PREFIX" ]] && [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; th
   echo ""
 fi
 
-crew_fix_environment
+# Do not run crew_fix_environment here: it creates $CREW_PREFIX/bin/tar, so /usr/local is
+# no longer empty and Chromebrew's install.sh will complain or ask to clear again.
 
 build_install_fixed
 
