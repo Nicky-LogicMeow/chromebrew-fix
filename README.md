@@ -12,7 +12,7 @@ These scripts fix that mismatch so the install can continue.
 
 - Patches the **git** checksum issue **before** bootstrap downloads **git**.
 - If **`/usr/local` already has files**, it **asks** whether to **delete everything there** (recommended for a clean reinstall; default is **no** if you just press Enter).
-- Sets **`/usr/local`** to be owned by your user and makes **`/usr/local/bin/tar` executable** when those exist, which avoids common **Permission denied – tar** errors from `crew`.
+- Sets **`/usr/local`** to be owned by your user, fixes **`/usr/local/bin/tar`** when it exists, and **removes** it if it still cannot run (so Chrome OS’s **`/usr/bin/tar`** is used). It also puts **`/usr/bin` and `/bin` first in `PATH`** so when a package says **no precompiled binary** and builds from source, unpacking does not hit **Permission denied – tar**.
 
 **`patch-git-only.sh`** is only if you already hit the **git verify** error once: it patches the same config line, removes the bad cached **git** archive, and applies the same **ownership / tar** fixes. Then run **`chromebrew-fix.sh`** or the installer again.
 

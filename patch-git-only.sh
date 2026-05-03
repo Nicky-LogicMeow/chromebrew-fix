@@ -11,7 +11,11 @@ sudo rm -f "$CREW_PREFIX/tmp/crew/git-2.54.0-chromeos-x86_64.tar.zst"
 sudo chown -R "$(id -u)":"$(id -g)" "$CREW_PREFIX" 2>/dev/null || true
 if [[ -e "$CREW_PREFIX/bin/tar" ]]; then
   chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || sudo chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || true
+  if [[ ! -x "$CREW_PREFIX/bin/tar" ]]; then
+    sudo rm -f "$CREW_PREFIX/bin/tar"
+  fi
 fi
+export PATH="/usr/bin:/bin:${PATH}"
 
 echo "Patched git.rb, removed bad tarball, fixed /usr/local ownership and tar if present."
 echo "Run chromebrew-fix.sh or the Chromebrew installer again."

@@ -15,10 +15,18 @@ crew_fix_permissions() {
   sudo chown -R "$(id -u)":"$(id -g)" "$CREW_PREFIX" 2>/dev/null || true
   if [[ -e "$CREW_PREFIX/bin/tar" ]]; then
     chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || sudo chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || true
+    if [[ ! -x "$CREW_PREFIX/bin/tar" ]]; then
+      echo "chromebrew-fix: Removing non-executable $CREW_PREFIX/bin/tar; using system tar in /usr/bin or /bin."
+      sudo rm -f "$CREW_PREFIX/bin/tar"
+    fi
   fi
 }
 
 cd ~
+
+# Use Chrome OS tar first. When a package has "no precompiled binary", crew builds from
+# source and unpacks with tar; a broken /usr/local/bin/tar causes: Permission denied - tar (EACCES).
+export PATH="/usr/bin:/bin:${PATH}"
 
 if [[ -d "$CREW_PREFIX" ]] && [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; then
   echo ""
