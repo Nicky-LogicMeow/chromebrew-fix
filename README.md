@@ -24,3 +24,19 @@ Or clone this repo on another machine, copy the script to the Chromebook, and ru
 ## Upstream
 
 When [chromebrew/chromebrew](https://github.com/chromebrew/chromebrew) updates `binary_sha256` for git x86_64, you can use the official installer again and this workaround may be unnecessary.
+
+## Publish this folder to your GitHub
+
+1. On GitHub (logged in): **New repository** → name it (e.g. `chromebrew-git-sha-fix`) → create **without** adding a README (avoid merge conflicts).
+2. On your PC, in this folder:
+
+```bash
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git push -u origin main
+```
+
+Use a [personal access token](https://github.com/settings/tokens) as the password if Git asks for credentials, or set up SSH.
+
+**Raw script URL** (after push), for easy download on a Chromebook:
+
+`https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/chromebrew-fix.sh`
