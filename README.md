@@ -18,23 +18,27 @@ These scripts fix that mismatch so the install can continue.
 
 ## How to use it
 
-**Easiest:** on your Chromebook, in the Linux-style shell you use for Chromebrew, paste or type:
+**Easiest:** on your Chromebook, in the shell you use for Chromebrew (**must be `bash`**, not `sh`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Nicky-LogicMeow/chromebrew-fix/main/chromebrew-fix.sh | bash
 ```
 
-When it finishes, run:
+You should see lines like `chromebrew-fix: starting...` and `chromebrew-fix: running Chromebrew install.sh ...`. If you see nothing, the download failed or the script is not running with **bash**.
+
+When it finishes, open a **new** shell or run:
 
 ```bash
 source ~/.bashrc
 ```
 
-**If paste doesn’t work in that shell:** open the link above in the browser, save the file as `chromebrew-fix.sh`, then run:
+**If paste doesn’t work in that shell:** save the raw script from the link above as `chromebrew-fix.sh`, then:
 
 ```bash
 bash ~/Downloads/chromebrew-fix.sh
 ```
+
+Never run `sh chromebrew-fix.sh` — use **`bash`**.
 
 (If `Downloads` isn’t there, move the file to your home folder and run `bash chromebrew-fix.sh` from that folder.)
 

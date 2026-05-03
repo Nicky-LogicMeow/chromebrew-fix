@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # If Chromebrew install already failed at "Verifying git", run this, then re-run chromebrew-fix.sh
-# or the official installer (answer the /usr/local prompt if asked).
+# Run with: bash patch-git-only.sh
 set -e
+
+if [[ -z "${BASH_VERSION:-}" ]]; then
+  echo "Use: bash $0" >&2
+  exit 1
+fi
 
 CREW_PREFIX=/usr/local
 
