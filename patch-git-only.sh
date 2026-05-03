@@ -1,7 +1,17 @@
 #!/bin/bash
-# If Chromebrew install already failed at "Verifying git", run this, then re-run
-# chromebrew-fix.sh or the official installer (you may need to clear /usr/local when asked).
+# If Chromebrew install already failed at "Verifying git", run this, then re-run chromebrew-fix.sh
+# or the official installer (answer the /usr/local prompt if asked).
 set -e
-sudo sed -i 's/68ae392e60447d052a8acb171542bcd69161157b97e58f07941d476f7f6ccfc2/15e896483bc5f96cba44ad192a89788cff29ec0372b94b73f176e82857b4abb7/' /usr/local/lib/crew/packages/git.rb
-sudo rm -f /usr/local/tmp/crew/git-2.54.0-chromeos-x86_64.tar.zst
-echo "Patched git.rb and removed bad tarball. Continue with Chromebrew install as needed."
+
+CREW_PREFIX=/usr/local
+
+sudo sed -i 's/68ae392e60447d052a8acb171542bcd69161157b97e58f07941d476f7f6ccfc2/15e896483bc5f96cba44ad192a89788cff29ec0372b94b73f176e82857b4abb7/' "$CREW_PREFIX/lib/crew/packages/git.rb"
+sudo rm -f "$CREW_PREFIX/tmp/crew/git-2.54.0-chromeos-x86_64.tar.zst"
+
+sudo chown -R "$(id -u)":"$(id -g)" "$CREW_PREFIX" 2>/dev/null || true
+if [[ -e "$CREW_PREFIX/bin/tar" ]]; then
+  chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || sudo chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || true
+fi
+
+echo "Patched git.rb, removed bad tarball, fixed /usr/local ownership and tar if present."
+echo "Run chromebrew-fix.sh or the Chromebrew installer again."

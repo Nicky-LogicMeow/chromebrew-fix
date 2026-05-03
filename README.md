@@ -8,9 +8,13 @@ These scripts fix that mismatch so the install can continue.
 
 ## What it does
 
-**`chromebrew-fix.sh`** runs Chromebrew’s normal installer but applies a small fix to the config **before** it tries to download **git**, so verification succeeds.
+**`chromebrew-fix.sh`** runs Chromebrew’s normal installer but:
 
-**`patch-git-only.sh`** is only if you already hit the error once: it fixes the same config line and removes the bad cached file. After that, run the installer again (or use `chromebrew-fix.sh` from a clean setup).
+- Patches the **git** checksum issue **before** bootstrap downloads **git**.
+- If **`/usr/local` already has files**, it **asks** whether to **delete everything there** (recommended for a clean reinstall; default is **no** if you just press Enter).
+- Sets **`/usr/local`** to be owned by your user and makes **`/usr/local/bin/tar` executable** when those exist, which avoids common **Permission denied – tar** errors from `crew`.
+
+**`patch-git-only.sh`** is only if you already hit the **git verify** error once: it patches the same config line, removes the bad cached **git** archive, and applies the same **ownership / tar** fixes. Then run **`chromebrew-fix.sh`** or the installer again.
 
 ## How to use it
 
