@@ -46,17 +46,6 @@ crew_fix_environment() {
   fi
 }
 
-clear_crew_prefix_contents() {
-  [[ -d "$CREW_PREFIX" ]] || return 0
-  shopt -s dotglob nullglob
-  local path
-  for path in "$CREW_PREFIX"/* "$CREW_PREFIX"/.[!.]* "$CREW_PREFIX"/..?*; do
-    [[ -e "$path" || -L "$path" ]] || continue
-    sudo rm -rf "$path"
-  done
-  shopt -u dotglob nullglob
-}
-
 build_install_fixed() {
   curl -fsSL https://raw.githubusercontent.com/chromebrew/chromebrew/master/install.sh -o /tmp/install.sh
   awk '
@@ -76,36 +65,14 @@ cd "${HOME}" || cd /
 
 export PATH="/usr/bin:/bin:${PATH}"
 
-if [[ -d "$CREW_PREFIX" ]] && [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; then
-  echo ""
-  echo "$CREW_PREFIX is not empty. A broken or old Chromebrew install often needs a clean folder."
-  read -r -p "Delete ALL contents under $CREW_PREFIX? [y/N]: " CLEAR_REPLY < /dev/tty || true
-  lc="$(printf '%s' "${CLEAR_REPLY}" | tr '[:upper:]' '[:lower:]')"
-  case "$lc" in
-    y|yes)
-      echo "Clearing $CREW_PREFIX ..."
-      clear_crew_prefix_contents
-      if [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; then
-        echo "Warning: $CREW_PREFIX is still not empty. Try manually:" >&2
-        echo "  sudo rm -rf $CREW_PREFIX/* $CREW_PREFIX/.[!.]* $CREW_PREFIX/..?*" >&2
-        exit 1
-      fi
-      echo "Done. $CREW_PREFIX is empty."
-      ;;
-    *)
-      echo "Keeping existing files. The installer may still prompt you later, or fail if the tree is inconsistent."
-      ;;
-  esac
-  echo ""
-fi
-
-# Do not run crew_fix_environment here: it creates $CREW_PREFIX/bin/tar, so /usr/local is
-# no longer empty and Chromebrew's install.sh will complain or ask to clear again.
+# Do not create anything under $CREW_PREFIX before install.sh — Chromebrew requires a clean or
+# intentionally non-empty tree and will prompt (select menu) to clear if needed.
 
 build_install_fixed
 
-echo "chromebrew-fix: running Chromebrew install.sh ..." >&2
-bash /tmp/install-fixed.sh
+echo "chromebrew-fix: running Chromebrew install.sh (use keyboard when it asks questions) ..." >&2
+# Chromebrew uses `select` for /usr/local clear; stdin must be the terminal, not a pipe from curl.
+bash /tmp/install-fixed.sh </dev/tty
 
 crew_fix_environment
 
