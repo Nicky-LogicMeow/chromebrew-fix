@@ -1,5 +1,5 @@
 #!/bin/bash
-# Chromebrew installer wrapper: git 2.54.0 x86_64 SHA256 fix + tar/PATH fixes + optional resume modes.
+# Chromebrew installer wrapper: git 2.54.0 x86_64 SHA256 fix + tar/PATH fixes.
 # See README.
 set -e
 
@@ -10,22 +10,11 @@ if [[ "${EUID}" -eq 0 ]]; then
   exit 1
 fi
 
-# CHROMEBREW_FIX_MODE=full   — default: ask about clearing /usr/local, refresh installer, run it
-# CHROMEBREW_FIX_MODE=retry  — testing: keep /usr/local, reuse /tmp/install-fixed.sh if present, run installer again
-# CHROMEBREW_FIX_MODE=prep   — only fix ownership + tar + PATH; refresh patched installer if missing; do NOT run install (continue with crew yourself)
-# CHROMEBREW_FIX_RESUME=1    — same as MODE=retry
-
-CHROMEBREW_FIX_MODE="${CHROMEBREW_FIX_MODE:-full}"
-if [[ -n "${CHROMEBREW_FIX_RESUME:-}" && "${CHROMEBREW_FIX_RESUME}" != "0" ]]; then
-  CHROMEBREW_FIX_MODE=retry
-fi
-
 crew_fix_environment() {
   [[ -d "$CREW_PREFIX" ]] || sudo mkdir -p "$CREW_PREFIX"
   sudo chown -R "$(id -u)":"$(id -g)" "$CREW_PREFIX" 2>/dev/null || true
 
-  # crew calls: system 'tar', ...  → must resolve to an executable. Replace a broken file with a symlink
-  # to Chrome OS tar (EACCES on /usr/local/bin/tar is common after partial installs).
+  # crew calls: system 'tar', ...  → must resolve to an executable.
   local sys_tar=""
   for candidate in /usr/bin/tar /bin/tar; do
     if [[ -x "$candidate" ]]; then
@@ -43,6 +32,13 @@ crew_fix_environment() {
   fi
 }
 
+clear_crew_prefix_contents() {
+  # Remove everything inside /usr/local (including hidden top-level entries).
+  # GNU find -delete can fail on some trees; rm -rf each child is more reliable.
+  [[ -d "$CREW_PREFIX" ]] || return 0
+  sudo find "$CREW_PREFIX" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+}
+
 build_install_fixed() {
   curl -fsSL https://raw.githubusercontent.com/chromebrew/chromebrew/master/install.sh -o /tmp/install.sh
   awk '
@@ -56,46 +52,33 @@ build_install_fixed() {
 
 cd ~
 
-# Prefer system tar in PATH; /usr/local/bin/tar is symlinked to it by crew_fix_environment.
 export PATH="/usr/bin:/bin:${PATH}"
 
-if [[ "${CHROMEBREW_FIX_MODE}" == full ]]; then
-  if [[ -d "$CREW_PREFIX" ]] && [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; then
-    echo ""
-    echo "$CREW_PREFIX is not empty. A broken or old Chromebrew install often needs a clean folder."
-    read -r -p "Delete ALL contents under $CREW_PREFIX? [y/N]: " CLEAR_REPLY < /dev/tty || true
-    case "${CLEAR_REPLY,,}" in
-      y|yes)
-        echo "Clearing $CREW_PREFIX ..."
-        sudo find "$CREW_PREFIX" -mindepth 1 -delete
-        ;;
-      *)
-        echo "Keeping existing files. The installer may still prompt you later, or fail if the tree is inconsistent."
-        ;;
-    esac
-    echo ""
-  fi
-else
-  echo "chromebrew-fix: mode=${CHROMEBREW_FIX_MODE} (no /usr/local wipe prompt)."
+if [[ -d "$CREW_PREFIX" ]] && [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; then
+  echo ""
+  echo "$CREW_PREFIX is not empty. A broken or old Chromebrew install often needs a clean folder."
+  read -r -p "Delete ALL contents under $CREW_PREFIX? [y/N]: " CLEAR_REPLY < /dev/tty || true
+  case "${CLEAR_REPLY,,}" in
+    y|yes)
+      echo "Clearing $CREW_PREFIX ..."
+      clear_crew_prefix_contents
+      if [[ -n "$(ls -A "$CREW_PREFIX" 2>/dev/null)" ]]; then
+        echo "Warning: $CREW_PREFIX is still not empty. Try manually:"
+        echo "  sudo find $CREW_PREFIX -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        exit 1
+      fi
+      echo "Done. $CREW_PREFIX is empty."
+      ;;
+    *)
+      echo "Keeping existing files. The installer may still prompt you later, or fail if the tree is inconsistent."
+      ;;
+  esac
   echo ""
 fi
 
 crew_fix_environment
 
-if [[ -f /tmp/install-fixed.sh ]] && { [[ "${CHROMEBREW_FIX_MODE}" == retry ]] || [[ "${CHROMEBREW_FIX_MODE}" == prep ]]; }; then
-  echo "chromebrew-fix: reusing existing /tmp/install-fixed.sh (delete it to regenerate from upstream)."
-else
-  build_install_fixed
-fi
-
-if [[ "${CHROMEBREW_FIX_MODE}" == prep ]]; then
-  echo ""
-  echo "Prep only (CHROMEBREW_FIX_MODE=prep): did not run the installer."
-  echo "  Full install:  bash /tmp/install-fixed.sh"
-  echo "  Then:         source ~/.bashrc"
-  echo "  Or continue:  source ~/.bashrc && crew install <package>"
-  exit 0
-fi
+build_install_fixed
 
 bash /tmp/install-fixed.sh
 
