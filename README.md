@@ -31,12 +31,12 @@ When [chromebrew/chromebrew](https://github.com/chromebrew/chromebrew) updates `
 2. On your PC, in this folder:
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git remote add origin https://github.com/Nicky-LogicMeow/chromebrew-fix.git
 git push -u origin main
 ```
 
 Use a [personal access token](https://github.com/settings/tokens) as the password if Git asks for credentials, or set up SSH.
 
-**Raw script URL** (after push), for easy download on a Chromebook:
+**Raw script** (for Chromebook / `curl`):
 
-`https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/chromebrew-fix.sh`
+https://raw.githubusercontent.com/Nicky-LogicMeow/chromebrew-fix/main/chromebrew-fix.sh
