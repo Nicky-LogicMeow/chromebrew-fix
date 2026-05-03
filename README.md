@@ -1,42 +1,37 @@
-# Chromebrew git checksum workaround
+# chromebrew-fix
 
-Chromebrew’s `packages/git.rb` for **git 2.54.0** on **x86_64** may list a SHA256 that does not match the file on GitLab, so install fails at **Verifying git**.
+## What it fixes
 
-This repo hosts a small installer wrapper that patches `git.rb` right after the Chromebrew tree is unpacked.
+When you install [Chromebrew](https://github.com/chromebrew/chromebrew) on a Chromebook, the installer can stop and say **git** failed verification (wrong checksum), even though the download is fine. This happens because the expected hash in Chromebrew’s config didn’t match the real **git** package file for some Chromebooks.
 
-## Chromebook (VT-2, `chronos`)
+These scripts fix that mismatch so the install can continue.
 
-If you cannot paste into the shell, save `chromebrew-fix.sh` to **Downloads** from GitHub (Raw), then:
+## What it does
 
-```bash
-bash /home/chronos/user/Downloads/chromebrew-fix.sh
-```
+**`chromebrew-fix.sh`** runs Chromebrew’s normal installer but applies a small fix to the config **before** it tries to download **git**, so verification succeeds.
 
-(Adjust the path if your Downloads folder differs; use `ls /home/chronos/user/Downloads`.)
+**`patch-git-only.sh`** is only if you already hit the error once: it fixes the same config line and removes the bad cached file. After that, run the installer again (or use `chromebrew-fix.sh` from a clean setup).
 
-Or clone this repo on another machine, copy the script to the Chromebook, and run it.
+## How to use it
 
-## Scripts
-
-- **`chromebrew-fix.sh`** — full install with the checksum patch applied.
-- **`patch-git-only.sh`** — patch an in-progress `/usr/local` after a failed git step (then re-run install / follow Chromebrew prompts).
-
-## Upstream
-
-When [chromebrew/chromebrew](https://github.com/chromebrew/chromebrew) updates `binary_sha256` for git x86_64, you can use the official installer again and this workaround may be unnecessary.
-
-## Publish this folder to your GitHub
-
-1. On GitHub (logged in): **New repository** → name it (e.g. `chromebrew-git-sha-fix`) → create **without** adding a README (avoid merge conflicts).
-2. On your PC, in this folder:
+**Easiest:** on your Chromebook, in the Linux-style shell you use for Chromebrew, paste or type:
 
 ```bash
-git remote add origin https://github.com/Nicky-LogicMeow/chromebrew-fix.git
-git push -u origin main
+curl -fsSL https://raw.githubusercontent.com/Nicky-LogicMeow/chromebrew-fix/main/chromebrew-fix.sh | bash
 ```
 
-Use a [personal access token](https://github.com/settings/tokens) as the password if Git asks for credentials, or set up SSH.
+When it finishes, run:
 
-**Raw script** (for Chromebook / `curl`):
+```bash
+source ~/.bashrc
+```
 
-https://raw.githubusercontent.com/Nicky-LogicMeow/chromebrew-fix/main/chromebrew-fix.sh
+**If paste doesn’t work in that shell:** open the link above in the browser, save the file as `chromebrew-fix.sh`, then run:
+
+```bash
+bash ~/Downloads/chromebrew-fix.sh
+```
+
+(If `Downloads` isn’t there, move the file to your home folder and run `bash chromebrew-fix.sh` from that folder.)
+
+When Chromebrew itself is fixed upstream, you can use their normal install command again and you won’t need this repo.
