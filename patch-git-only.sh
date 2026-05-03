@@ -9,13 +9,18 @@ sudo sed -i 's/68ae392e60447d052a8acb171542bcd69161157b97e58f07941d476f7f6ccfc2/
 sudo rm -f "$CREW_PREFIX/tmp/crew/git-2.54.0-chromeos-x86_64.tar.zst"
 
 sudo chown -R "$(id -u)":"$(id -g)" "$CREW_PREFIX" 2>/dev/null || true
-if [[ -e "$CREW_PREFIX/bin/tar" ]]; then
-  chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || sudo chmod a+x "$CREW_PREFIX/bin/tar" 2>/dev/null || true
-  if [[ ! -x "$CREW_PREFIX/bin/tar" ]]; then
-    sudo rm -f "$CREW_PREFIX/bin/tar"
-  fi
+
+sys_tar=""
+for candidate in /usr/bin/tar /bin/tar; do
+  [[ -x "$candidate" ]] && sys_tar="$candidate" && break
+done
+if [[ -n "$sys_tar" ]]; then
+  sudo mkdir -p "$CREW_PREFIX/bin"
+  sudo rm -f "$CREW_PREFIX/bin/tar"
+  sudo ln -sf "$sys_tar" "$CREW_PREFIX/bin/tar"
 fi
+
 export PATH="/usr/bin:/bin:${PATH}"
 
-echo "Patched git.rb, removed bad tarball, fixed /usr/local ownership and tar if present."
+echo "Patched git.rb, removed bad tarball, fixed /usr/local ownership and tar symlink."
 echo "Run chromebrew-fix.sh or the Chromebrew installer again."
